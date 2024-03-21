@@ -1,0 +1,5 @@
+# The directory to keep MIB files
+mibs
+
+# Services persist log files into 'log/<service>' directories
+**.log
