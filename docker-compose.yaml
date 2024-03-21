@@ -1,0 +1,41 @@
+version: "3"
+
+services:
+  snmpd:
+    image: 
+      snmpd:rh8-latest
+    build:
+      dockerfile: snmpd.Dockerfile
+      args:
+        version: latest
+    ports:
+      - "0.0.0.0:33161:161/udp"
+    volumes:
+      - ./cfg/snmpd/etc/snmp:/etc/snmp:ro
+      - ./cfg/snmpd/root/.snmp:/root/.snmp:ro
+      - ./mibs:/tmp/mibs:ro
+      - ./log/snmpd:/var/log
+    container_name: lab-snmpd
+    networks:
+      - lab
+
+  snmptrapd:
+    image:
+      snmptrapd:rh8-latest
+    build: 
+      dockerfile: snmptrapd.Dockerfile
+      args:
+        version: latest
+    ports:
+      - "0.0.0.0:33162:162/udp"
+    volumes:
+      - ./cfg/snmptrapd/etc/snmp:/etc/snmp:ro
+      - ./cfg/snmptrapd/root/.snmp:/root/.snmp:ro
+      - ./mibs:/tmp/mibs:ro
+      - ./log/snmptrapd:/var/log
+    container_name: lab-snmptrapd
+    networks:
+      - lab
+
+networks:
+  lab:
