@@ -1,0 +1,113 @@
+### SNMPTRANSLATE
+
+This application is used to translate OIDs to symbols and vise versa, to get fully qualified Object's path or examine MIBs represented as trees.
+
+snmptranslate -Of -Tp IIAS-MIB::iias
+
+
+##$ SNMPTRAP
+
+This application generates and sends TRAP/INFORM notifications.
+
+Below are succeessfull and failed examples of running the command with short comments.
+
+1. [root@3b1c4c167da2 /]# snmptrap -v2c -csnmpv2public -Ci 192.168.176.3:162 '' IIAS-MIB::testHWAlert199 IIAS-MIB::applianceSN s "S/N 0001"
+This command succeeded.
+
+
+2. [root@3b1c4c167da2 /]# snmptrap -v2c -csnmp2public -Ci 192.168.176.3:162 '' IIAS-MIB::testHWAlert199 IIAS-MIB::applianceSN s "S/N 0001"
+snmpinform: Timeout
+This command failed due to bad community string, the remote host could not authenticate the incoming notification due to misspelled community string and rejected the session. As a result command failed with 'Timeout' because did not received a responce from the remote host.
+
+
+3. [root@3b1c4c167da2 /]# snmptrap -v2c -csnmp2public 192.168.176.3:162 '' IIAS-MIB::testHWAlert199 IIAS-MIB::applianceSN s "S/N 0001"
+This is TRAP, they are unacknowledged, so 'sender' never know if sent notification has been delivered and accepted. Actually this one was not, the difference with example 2 is the '-Ci' option which toggles between TRAP and INFORM mode.
+
+4. [root@3b1c4c167da2 /]# snmptrap -Ci -v3 -l authPriv -u sha-aes-inform -a SHA -A sha.auth -x AES -X aes.priv 192.168.176.3:162 '' IIAS-MIB::testHWAlert199 IIAS-MIB::applianceSN s "S/N 0002"
+This is an example of SNMPv3 successful command.
+
+5. [root@3b1c4c167da2 /]# snmptrap -Ci -v3 -l authPriv -u sha1-aes-inform -a SHA -A sha.auth -x AES -X aes.priv 192.168.176.3:162 '' IIAS-MIB::testHWAlert199 IIAS-MIB::applianceSN s "S/N 0002"
+snmpinform: Unknown user name
+Here we can see another one failure reason: 'Unknown user name', that happened because we changed 'sha-aes-inform' to 'sha1-aes-inform' and receiver had no such user defined.
+
+6. [root@3b1c4c167da2 /]# snmptrap -Ci -v3 -l authPriv -u sha-aes-inform -a SHA -A sha.auth -x AES -X aes.priv2 192.168.176.3:162 '' IIAS-MIB::testHWAlert199 IIAS-MIB::applianceSN s "S/N 0002"
+snmpinform: Timeout
+Here we see command failed with 'Timeout' because of misspelled encription passphrase, which made impossible to start authentication process, despite username was correct. 
+
+
+7. [root@3b1c4c167da2 /]# snmptrap -Ci -v3 -l authPriv -u sha-aes-inform -a SHA -A sha.auth2 -x AES -X aes.priv 192.168.176.3:162 '' IIAS-MIB::testHWAlert199 IIAS-MIB::applianceSN s "S/N 0002"
+snmpinform: Authentication failure (incorrect password, community or key)
+Here we see clear reason why the command failed, the authentication passphrase is incorrect.
+
+8. [root@3b1c4c167da2 /]# snmptrap -v3 -e 80000002044533 -l authPriv -u sha-aes-trap -a SHA -A sha.auth -x AES -X aes.priv 192.168.176.3:162 '' IIAS-MIB::testHWAlert199 IIAS-MIB::applianceSN s "S/N 0003"
+Here we used SNMP EngineId and it's a TRAP, so there's no output which could confirm the TRAP was delivered and accepted.  
+
+
+9. [root@3b1c4c167da2 /]# snmptrap -v1 -csnmpv1public 192.168.176.3:162 1.3.6.1.4.1.2.266 192.168.176.222 6 199 "" IIAS-MIB::applianceSN s "S/N 0011"
+SNMPv1 allows to sent only TRAP notifications. This is an example how command differs from SNMPv2 (compare the part after remote host address)
+
+
+Examples of logged TRAP/INFORM representation.
+
+me@mercury snmp-playground % tail -f log/snmptrapd/snmptrapd-direct.log 
+NET-SNMP version 5.8
+
+13:29:58 2024/03/20 TRAP 3b1c4c167da2.snmp-playground_lab
+PDU INFO:
+  receivedfrom:      UDP: [192.168.176.2]:55291->[192.168.176.3]:162
+  community:         INFORM, SNMP v2c, community snmpv2public
+VARBINDS:
+  DISMAN-EVENT-MIB::sysUpTimeInstance = 0:16:11:04.65
+  SNMPv2-MIB::snmpTrapOID.0 = SNMPv2-SMI::enterprises.2.6.266.0.199
+  SNMPv2-SMI::enterprises.2.6.266.1.1.1 = "S/N 0001"
+
+13:41:10 2024/03/20 TRAP 3b1c4c167da2.snmp-playground_lab
+PDU INFO:
+  receivedfrom:      UDP: [192.168.176.2]:55489->[192.168.176.3]:162
+  community:         INFORM, SNMP v3, user sha-aes-inform, context 
+VARBINDS:
+  DISMAN-EVENT-MIB::sysUpTimeInstance = 0:16:22:17.36
+  SNMPv2-MIB::snmpTrapOID.0 = SNMPv2-SMI::enterprises.2.6.266.0.199
+  SNMPv2-SMI::enterprises.2.6.266.1.1.1 = "S/N 0002"
+
+# following lines show the problem with decription, see example 7 above.  
+security service 3 error parsing ScopedPDU
+security service 3 error parsing ScopedPDU
+security service 3 error parsing ScopedPDU
+security service 3 error parsing ScopedPDU
+security service 3 error parsing ScopedPDU
+security service 3 error parsing ScopedPDU
+Authentication failed for sha-aes-inform
+Authentication failed for sha-aes-trap
+
+13:46:11 2024/03/20 TRAP 3b1c4c167da2.snmp-playground_lab
+PDU INFO:
+  receivedfrom:      UDP: [192.168.176.2]:42504->[192.168.176.3]:162
+  community:         TRAP2, SNMP v3, user sha-aes-trap, context 
+VARBINDS:
+  DISMAN-EVENT-MIB::sysUpTimeInstance = 0:16:27:17.85
+  SNMPv2-MIB::snmpTrapOID.0 = SNMPv2-SMI::enterprises.2.6.266.0.199
+  SNMPv2-SMI::enterprises.2.6.266.1.1.1 = "S/N 0003"
+
+14:11:31 2024/03/20 TRAP 3b1c4c167da2.snmp-playground_lab
+PDU INFO:
+  receivedfrom:      192.168.176.2
+  agent hostname:    3b1c4c167da2.snmp-playground_lab
+  community:         TRAP, SNMP v1, community snmpv1public
+  enterprise OID:    SNMPv2-SMI::enterprises.2.266
+  trap type:         Enterprise Specific
+  trap sub-type:     .199
+VARBINDS:
+  SNMPv2-SMI::enterprises.2.6.266.1.1.1 = "S/N 0011"
+
+# this example corresponds the ex.9 above, it shows sender's able to set any IP as originating one, so despite the container had the address 192.168.176.2, we can see "received from 192.168.176.222" the value we used in the command to override the original IP address 
+14:13:16 2024/03/20 TRAP 192.168.176.222
+PDU INFO:
+  receivedfrom:      192.168.176.222
+  agent hostname:    192.168.176.222
+  community:         TRAP, SNMP v1, community snmpv1public
+  enterprise OID:    SNMPv2-SMI::enterprises.2.266
+  trap type:         Enterprise Specific
+  trap sub-type:     .199
+VARBINDS:
+  SNMPv2-SMI::enterprises.2.6.266.1.1.1 = "S/N 0011"
