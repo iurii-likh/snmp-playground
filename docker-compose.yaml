@@ -9,7 +9,7 @@ services:
       args:
         version: latest
     ports:
-      - "0.0.0.0:33161:161/udp"
+      - "33161:161/udp"
     volumes:
       - ./cfg/snmpd/etc/snmp:/etc/snmp:ro
       - ./cfg/snmpd/root/.snmp:/root/.snmp:ro
@@ -27,7 +27,7 @@ services:
       args:
         version: latest
     ports:
-      - "0.0.0.0:33162:162/udp"
+      - "33162:162/udp"
     volumes:
       - ./cfg/snmptrapd/etc/snmp:/etc/snmp:ro
       - ./cfg/snmptrapd/root/.snmp:/root/.snmp:ro
