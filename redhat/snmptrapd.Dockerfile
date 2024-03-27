@@ -1,5 +1,5 @@
-ARG version
-FROM redhat/ubi8:$version
+ARG VERSION
+FROM redhat/ubi8:${VERSION:-latest}
 
 RUN yum install --disableplugin subscription-manager -y \
                 net-snmp \
@@ -7,9 +7,9 @@ RUN yum install --disableplugin subscription-manager -y \
                 net-snmp-libs \
                 net-snmp-agent-libs \
     && yum clean all \
-    && rm -rf /var/cache/yum
+    && rm -rf /var/cache/yum 
 
-EXPOSE 161/udp
+EXPOSE 33162/udp
 
-ENTRYPOINT ["/usr/sbin/snmpd", "-f"]
-CMD ["-Lf", "/var/log/snmpd-direct.log"]
+ENTRYPOINT ["/usr/sbin/snmptrapd", "-f"]
+CMD ["-Lf" , "/var/log/snmptrapd-direct.log", "-OQ"]

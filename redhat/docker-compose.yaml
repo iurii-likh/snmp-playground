@@ -7,9 +7,9 @@ services:
     build:
       dockerfile: snmpd.Dockerfile
       args:
-        version: latest
+        VERSION: latest
     ports:
-      - "33161:161/udp"
+      - "33161:33161/udp"
     volumes:
       - ./cfg/snmpd/etc/snmp:/etc/snmp:ro
       - ./cfg/snmpd/root/.snmp:/root/.snmp:ro
@@ -25,9 +25,9 @@ services:
     build: 
       dockerfile: snmptrapd.Dockerfile
       args:
-        version: latest
+        VERSION: latest
     ports:
-      - "33162:162/udp"
+      - "33162:33162/udp"
     volumes:
       - ./cfg/snmptrapd/etc/snmp:/etc/snmp:ro
       - ./cfg/snmptrapd/root/.snmp:/root/.snmp:ro

@@ -1,0 +1,44 @@
+version: "3"
+
+services:
+#  snmpd:
+#    image: 
+#      snmpd:rh8-latest
+#    build:
+#      dockerfile: snmpd.Dockerfile
+#      args:
+#        VERSION: latest
+#    ports:
+#      - "33161:33161/udp"
+#    volumes:
+#      - ./cfg/snmpd/etc/snmp:/etc/snmp:ro
+#      - ./cfg/snmpd/root/.snmp:/root/.snmp:ro
+#      - ./mibs:/tmp/mibs:ro
+#      - ./log/snmpd:/var/log
+#    container_name: lab-snmpd
+#    networks:
+#      - lab
+
+  snmptrapd:
+    image:
+      snmptrapd:fedora-latest
+    build: 
+      dockerfile: snmptrapd.Containerfile
+      args:
+        VERSION: latest
+    ports:
+      - "33162:162/udp"
+    volumes:
+      - ../cfg/snmptrapd/etc/snmp:/etc/snmp:ro
+      - ../cfg/snmptrapd/root/.snmp:/root/.snmp:ro
+      - ../mibs:/tmp/mibs:ro
+      - ../log/snmptrapd:/var/log
+      - ../resources/man/:/usr/local/share/man:ro
+    container_name: lab-snmptrapd
+    entrypoint: "/usr/sbin/snmptrapd"
+    command: ["-f", "-Lf", "/var/log/snmptrapd-direct.log", "-OQ"]
+    networks:
+      - lab
+
+networks:
+  lab:
